@@ -10,6 +10,8 @@ import Clients from "@/components/clients";
 import Accounts from "@/components/accounts";
 import Withdrawals from "@/components/withdrawals";
 import Deposits from "@/components/deposits";
+import Workers from "@/components/workers";
+import Groups from "@/components/groups";
 
 const breadcrumbTitles = [
     "Dashboard",
@@ -17,6 +19,8 @@ const breadcrumbTitles = [
     "Accounts",
     "Withdrawals",
     "Deposits",
+    "Workers",
+    "Groups",
 ];
 
 const MainContent = () => {
@@ -52,6 +56,8 @@ const MainContent = () => {
                     {itemOpenIndex === 2 && <Accounts />}
                     {itemOpenIndex === 3 && <Withdrawals />}
                     {itemOpenIndex === 4 && <Deposits />}
+                    {itemOpenIndex === 5 && <Workers />}
+                    {itemOpenIndex === 6 && <Groups />}
                 </div>
             </SidebarInset>
         </SidebarProvider>

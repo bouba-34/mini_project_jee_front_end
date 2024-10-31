@@ -1,6 +1,6 @@
 "use client"
 import {useState} from "react";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {
     ArrowUpRight,
     CreditCard,
@@ -37,37 +37,6 @@ const Dashboard = () => {
         { id: 10, name: 'Julia Child', status: 'Active', balance: 30000, email: 'julia@example.com' },
     ])
 
-
-    const dailyTransactionData = {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [{
-            label: 'Daily Transactions',
-            data: [1200, 1900, 3000, 5000, 2000, 3000, 4000],
-            backgroundColor: 'rgba(53, 162, 235, 0.5)',
-        }]
-    }
-
-    const accountTypesData = {
-        labels: ['Savings', 'Checking', 'Investment'],
-        datasets: [{
-            data: [300, 500, 200],
-            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-            hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
-        }]
-    }
-
-    const monthlyRevenueData = {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-            label: 'Monthly Revenue',
-            data: [65, 59, 80, 81, 56, 55],
-            fill: false,
-            borderColor: 'rgb(75, 192, 192)',
-            tension: 0.1
-        }]
-    }
-
-    //console.log(clients)
 
     return (
         <>
@@ -182,6 +151,109 @@ const Dashboard = () => {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Data Visualization */}
+            {/*<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Line Chart</CardTitle>
+                        <CardDescription>January - June 2024</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig}>
+                            <LineChart
+                                accessibilityLayer
+                                data={chartData}
+                                margin={{
+                                    left: 12,
+                                    right: 12,
+                                }}
+                            >
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                    dataKey="month"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickMargin={8}
+                                    tickFormatter={(value) => value.slice(0, 3)}
+                                />
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={<ChartTooltipContent hideLabel />}
+                                />
+                                <Line
+                                    dataKey="desktop"
+                                    type="natural"
+                                    stroke="var(--color-desktop)"
+                                    strokeWidth={2}
+                                    dot={false}
+                                />
+                            </LineChart>
+                        </ChartContainer>
+                    </CardContent>
+                    <CardFooter className="flex-col items-start gap-2 text-sm">
+                        <div className="flex gap-2 font-medium leading-none">
+                            Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+                        </div>
+                        <div className="leading-none text-muted-foreground">
+                            Showing total visitors for the last 6 months
+                        </div>
+                    </CardFooter>
+                </Card>
+                {/*<Card>
+                    <CardHeader>
+                        <CardTitle>Daily Transaction Volume</CardTitle>
+                        <CardDescription>January - June 2024</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig}>
+                            <LineChart
+                                accessibilityLayer
+                                data={chartData}
+                                margin={{
+                                    left: 12,
+                                    right: 12,
+                                }}
+                            >
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                    dataKey="month"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickMargin={8}
+                                    tickFormatter={(value) => value.slice(0, 3)}
+                                />
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={<ChartTooltipContent hideLabel />}
+                                />
+                                <Line
+                                    dataKey="desktop"
+                                    type="natural"
+                                    stroke="var(--color-desktop)"
+                                    strokeWidth={2}
+                                    dot={false}
+                                />
+                            </LineChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+                {/*<Card>
+                    <CardHeader>
+                        <CardTitle>Account Types</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Monthly Revenue Trend</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Line data={monthlyRevenueData} />
+                    </CardContent>
+                </Card>
+            </div>*/}
         </>
     );
 }

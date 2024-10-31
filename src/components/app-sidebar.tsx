@@ -16,7 +16,9 @@ import {
   LayoutDashboard,
   Users,
   Wallet,
-  HandCoins
+  HandCoins,
+    Contact,
+    Boxes
 } from "lucide-react"
 
 import { NavFavorites } from "@/components/nav-favorites"
@@ -62,6 +64,18 @@ const data = [
       url: "",
       icon: Inbox,
       isActive: false,
+    },
+    {
+        title: "Workers",
+        url: "",
+        icon: Contact,
+        isActive: false,
+    },
+    {
+        title: "Groups",
+        url: "",
+        icon: Boxes,
+        isActive: false,
     },
   ]
 
