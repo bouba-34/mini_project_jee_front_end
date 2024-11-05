@@ -1,5 +1,5 @@
 "use client"
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Calendar, ArrowDownRight, Clock,
     DollarSign, Search, PlusCircle,
     Filter, Eye, ChevronDown,
@@ -10,14 +10,6 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Input} from "@/components/ui/input";
-import {Switch} from "@/components/ui/switch";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel, DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import {
     Dialog,
     DialogContent,
@@ -32,51 +24,208 @@ import {Label} from "@/components/ui/label";
 import {Textarea} from "@/components/ui/textarea";
 import {Badge} from "@/components/ui/badge";
 import {format} from "date-fns";
+import {addOperation, getClientAccounts, getComptes, getOperations} from "@/actions/use-dashboard";
+import accounts, {AccountProps} from "@/components/accounts";
+import {useEmployeStore} from "@/store";
+import toast from "react-hot-toast";
+
+type WithDrawalDataProps = {
+    metadata: {
+        totalWithdrawnToday: number;
+        averageWithdrawal: number;
+        totalWithdrawnThisMonth: number;
+    },
+    data: {
+        numOperation: number;
+        dateOperation: string;
+        montant: number;
+        status: string;
+        employe: {
+            codeEmploye: number;
+            fullname: string;
+            email: string;
+        };
+        compte: {
+            numCompte: number;
+            solde: number;
+            client: {
+                codeClient: number;
+                fullname: string;
+                email: string;
+                phone: string;
+                address: string;
+                joinDate: string;
+            };
+        };
+    }[]
+}
+
+
+type SelectedWithdrawalProps = {
+    numOperation: number;
+    dateOperation: string;
+    montant: number;
+    status: string;
+    employe: {
+        codeEmploye: number;
+        fullname: string;
+        email: string;
+    };
+    compte: {
+        numCompte: number;
+        solde: number;
+        client: {
+            codeClient: number;
+            fullname: string;
+            email: string;
+            phone: string;
+            address: string;
+            joinDate: string;
+        };
+    };
+}
+
+export type AddOperationProps = {
+    operationType: string;
+    compteId: number;
+    montant: number;
+    employeID: string;
+}
+
+export type ClientAccountProps = {
+    data: {
+        numCompte: number;
+        dateCreation: string;
+    }[];
+};
+
 
 const Withdrawals = () => {
-    const withdrawalData = [
-        { id: 'W001', clientName: 'Alice Johnson', accountNumber: 'ACC001', amount: 5000, date: '2023-06-01', status: 'Approved', approvedBy: 'Admin1', initiatedBy: 'EMP001' },
-        { id: 'W002', clientName: 'Bob Smith', accountNumber: 'ACC002', amount: 1000, date: '2023-06-02', status: 'Pending', approvedBy: '-', initiatedBy: 'EMP002' },
-        { id: 'W003', clientName: 'Charlie Brown', accountNumber: 'ACC003', amount: 15000, date: '2023-06-03', status: 'Flagged', approvedBy: '-', initiatedBy: 'EMP003' },
-        { id: 'W004', clientName: 'Diana Prince', accountNumber: 'ACC004', amount: 2000, date: '2023-06-04', status: 'Approved', approvedBy: 'Admin2', initiatedBy: 'EMP001' },
-        { id: 'W005', clientName: 'Ethan Hunt', accountNumber: 'ACC005', amount: 500, date: '2023-06-05', status: 'Rejected', approvedBy: 'Admin1', initiatedBy: 'EMP002' },
-        { id: 'W006', clientName: 'Fiona Green', accountNumber: 'ACC006', amount: 7500, date: '2023-06-06', status: 'Approved', approvedBy: 'Admin3', initiatedBy: 'EMP003' },
-        { id: 'W007', clientName: 'George White', accountNumber: 'ACC007', amount: 1200, date: '2023-06-07', status: 'Pending', approvedBy: '-', initiatedBy: 'EMP004' },
-        { id: 'W008', clientName: 'Hannah Brown', accountNumber: 'ACC008', amount: 3000, date: '2023-06-08', status: 'Approved', approvedBy: 'Admin1', initiatedBy: 'EMP005' },
-        { id: 'W009', clientName: 'Ian Black', accountNumber: 'ACC009', amount: 4000, date: '2023-06-09', status: 'Rejected', approvedBy: 'Admin2', initiatedBy: 'EMP006' },
-        { id: 'W010', clientName: 'Jasmine Blue', accountNumber: 'ACC010', amount: 2500, date: '2023-06-10', status: 'Flagged', approvedBy: '-', initiatedBy: 'EMP007' },
-        { id: 'W011', clientName: 'Kevin Yellow', accountNumber: 'ACC011', amount: 6000, date: '2023-06-11', status: 'Approved', approvedBy: 'Admin3', initiatedBy: 'EMP008' },
-        { id: 'W012', clientName: 'Laura Red', accountNumber: 'ACC012', amount: 1500, date: '2023-06-12', status: 'Pending', approvedBy: '-', initiatedBy: 'EMP009' },
-        { id: 'W013', clientName: 'Mike Grey', accountNumber: 'ACC013', amount: 8000, date: '2023-06-13', status: 'Approved', approvedBy: 'Admin1', initiatedBy: 'EMP010' },
-        { id: 'W014', clientName: 'Nina Pink', accountNumber: 'ACC014', amount: 2000, date: '2023-06-14', status: 'Rejected', approvedBy: 'Admin2', initiatedBy: 'EMP011' },
-        { id: 'W015', clientName: 'Oscar Silver', accountNumber: 'ACC015', amount: 3500, date: '2023-06-15', status: 'Flagged', approvedBy: '-', initiatedBy: 'EMP012' },
-        { id: 'W016', clientName: 'Paula Gold', accountNumber: 'ACC016', amount: 9000, date: '2023-06-16', status: 'Approved', approvedBy: 'Admin3', initiatedBy: 'EMP013' },
-        { id: 'W017', clientName: 'Quincy Bronze', accountNumber: 'ACC017', amount: 4500, date: '2023-06-17', status: 'Pending', approvedBy: '-', initiatedBy: 'EMP014' },
-        { id: 'W018', clientName: 'Rachel Copper', accountNumber: 'ACC018', amount: 3700, date: '2023-06-18', status: 'Approved', approvedBy: 'Admin1', initiatedBy: 'EMP015' },
-        { id: 'W019', clientName: 'Steve Platinum', accountNumber: 'ACC019', amount: 2900, date: '2023-06-19', status: 'Rejected', approvedBy: 'Admin2', initiatedBy: 'EMP016' },
-        { id: 'W020', clientName: 'Tina Emerald', accountNumber: 'ACC020', amount: 5600, date: '2023-06-20', status: 'Flagged', approvedBy: '-', initiatedBy: 'EMP017' },
-    ];
 
+    const [withdrawalData, setWithdrawalData] = useState<WithDrawalDataProps>({
+        metadata: {
+            totalWithdrawnToday: 0,
+            averageWithdrawal: 0,
+            totalWithdrawnThisMonth: 0,
+        },
+        data: []
+    });
 
-    const [selectedWithdrawal, setSelectedWithdrawal] = useState(null)
+    const [clientData, setClientData] = useState({
+        data:[]
+    });
+
+    const [clientAccounts, setClientAccounts] = useState<ClientAccountProps>({
+        data: []
+    });
+
+    const current_emp_code = useEmployeStore(state => state.code);
+    const current_emp_fullname = useEmployeStore(state => state.fullname);
+
+    const [selectedWithdrawal, setSelectedWithdrawal] = useState<SelectedWithdrawalProps>({
+        numOperation: 0,
+        dateOperation: "",
+        montant: 0,
+        status: "",
+        employe: {
+            codeEmploye: 0,
+            fullname: "",
+            email: "",
+        },
+        compte: {
+            numCompte: 0,
+            solde: 0,
+            client: {
+                codeClient: 0,
+                fullname: "",
+                email: "",
+                phone: "",
+                address: "",
+                joinDate: "",
+            },
+        }
+    });
+
+    const [newWithDrawal, setNewWithDrawal] = useState<AddOperationProps>({
+        operationType: "",
+        compteId: 0,
+        montant: 0,
+        employeID: ""
+    });
+
+    const [suggestions, setSuggestions] = useState<AccountProps[]>([])
+    const [inputText, setInputText] = useState('')
+    const [clientSearchTerm, setClientSearchTerm] = useState('');
+
     const [isNewWithdrawalDialogOpen, setIsNewWithdrawalDialogOpen] = useState(false)
-
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5; // Nombre d'éléments par page
-    const totalPages = Math.ceil(withdrawalData.length / itemsPerPage);
-    const [visiblePages, setVisiblePages] = useState([1, 2, 3, 4]); // Pages visibles initiales
+    const totalPages = Math.ceil(withdrawalData.data.length / itemsPerPage);
+    const [visiblePages, setVisiblePages] = useState([1, 2, 3, 4]); // Pages visibles dans la pagination
 
-    const filteredWithdrawals = withdrawalData.filter(withdrawal =>
-        withdrawal.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        withdrawal.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        withdrawal.accountNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredWithdrawals = withdrawalData.data.filter(withdrawal =>
+        withdrawal.compte.client.fullname.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const indexOfLastWithdrawal = currentPage * itemsPerPage;
     const indexOfFirstWithdrawal = indexOfLastWithdrawal - itemsPerPage;
     const currentWithdrawals = filteredWithdrawals.slice(indexOfFirstWithdrawal, indexOfLastWithdrawal);
 
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await getOperations("RE");
+            const clients = await getComptes();
+            setClientData(clients);
+            setWithdrawalData(response);
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        if (clientSearchTerm.length > 0) {
+            const suggestionsFiltrees = clientData.data.filter((element:AccountProps) =>
+                element.client.fullname.toLowerCase().includes(clientSearchTerm.toLowerCase())
+            )
+            setSuggestions(suggestionsFiltrees)
+        } else {
+            setSuggestions([])
+        }
+    }, [clientSearchTerm])
+
+    const handleSelection = async (element: AccountProps) => {
+        setInputText(element.client.fullname)
+        const accounts = await getClientAccounts(element.client.codeClient)
+        setClientAccounts(accounts)
+        setClientSearchTerm("")
+        setSuggestions([])
+    }
+
+    const handleAddWithdrawOperation = async () => {
+        newWithDrawal.employeID = current_emp_code;
+        newWithDrawal.operationType = "retrait";
+        try {
+            const response = await addOperation(newWithDrawal);
+            console.log(response);
+            setNewWithDrawal({
+                operationType: "",
+                compteId: 0,
+                montant: 0,
+                employeID: ""
+            });
+            setIsNewWithdrawalDialogOpen(false);
+            toast.success("Withdrawal added successfully");
+        } catch (error) {
+            toast.error("Insufficient funds or decouvert exceeded");
+            setNewWithDrawal({
+                operationType: "",
+                compteId: 0,
+                montant: 0,
+                employeID: ""
+            })
+            console.error(error);
+        }
+    }
 
     const handleNext = () => {
         if (currentPage < totalPages) {
@@ -104,14 +253,14 @@ const Withdrawals = () => {
         <>
             <h1 className="text-3xl font-bold mb-6">Withdrawals Management</h1>
             {/* Withdrawals Overview Panel */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Withdrawals Today</CardTitle>
                         <ArrowDownRight className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$24,500</div>
+                        <div className="text-2xl font-bold">${withdrawalData.metadata.totalWithdrawnToday}</div>
                         <p className="text-xs text-muted-foreground">+15% from yesterday</p>
                     </CardContent>
                 </Card>
@@ -121,18 +270,8 @@ const Withdrawals = () => {
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$789,000</div>
+                        <div className="text-2xl font-bold">${withdrawalData.metadata.totalWithdrawnThisMonth}</div>
                         <p className="text-xs text-muted-foreground">+5% from last month</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">23</div>
-                        <p className="text-xs text-muted-foreground">4 urgent requests</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -141,7 +280,7 @@ const Withdrawals = () => {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$3,450</div>
+                        <div className="text-2xl font-bold">${withdrawalData.metadata.averageWithdrawal}</div>
                         <p className="text-xs text-muted-foreground">+2% from last week</p>
                     </CardContent>
                 </Card>
@@ -157,22 +296,6 @@ const Withdrawals = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                            <Filter className="mr-2 h-4 w-4" />
-                            Filters
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[200px]">
-                        <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>Date Range</DropdownMenuItem>
-                        <DropdownMenuItem>Amount Range</DropdownMenuItem>
-                        <DropdownMenuItem>Status</DropdownMenuItem>
-                        <DropdownMenuItem>Initiated By</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
                 <Dialog open={isNewWithdrawalDialogOpen} onOpenChange={setIsNewWithdrawalDialogOpen}>
                     <DialogTrigger asChild>
                         <Button>
@@ -188,48 +311,97 @@ const Withdrawals = () => {
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
+                            <div className="grid grid-cols-2 items-center gap-4">
                                 <Label htmlFor="client" className="text-right">
                                     Client
                                 </Label>
-                                <Input id="client" className="col-span-3" placeholder="Search client..." />
+                                <div className="relative">
+                                    <Input id="client"
+                                           className="col-span-3"
+                                           placeholder="Search existing client..."
+                                           value={inputText}
+                                           onChange={(e) => {
+                                               setClientSearchTerm(e.target.value)
+                                               setInputText(e.target.value)
+                                           }}
+                                    />
+                                    {suggestions.length > 0 && (
+                                        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-b-md shadow-lg max-h-60 overflow-auto">
+                                            {suggestions.map((suggestion, index) => (
+                                                <li
+                                                    key={index}
+                                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                                    onClick={() => handleSelection(suggestion)}
+                                                >
+                                                    <div className="flex items-center">
+                                                        <Avatar className="h-8 w-8 mr-2">
+                                                            <AvatarImage
+                                                                src={`https://api.dicebear.com/6.x/initials/svg?seed=${suggestion.client.fullname}`}/>
+                                                            <AvatarFallback>{suggestion.client.fullname.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>{suggestion.client.fullname}</div>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="accountNumber" className="text-right">
                                     Account
                                 </Label>
-                                <Select>
+                                <Select
+                                    onValueChange={(value) => setNewWithDrawal({
+                                        ...newWithDrawal,
+                                        compteId: parseInt(value)}
+                                        )}
+                                >
                                     <SelectTrigger className="col-span-3">
-                                        <SelectValue placeholder="Select account" />
+                                        <SelectValue placeholder="Select account"/>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="acc001">ACC001 - Savings</SelectItem>
-                                        <SelectItem value="acc002">ACC002 - Checking</SelectItem>
-                                        <SelectItem value="acc003">ACC003 - Investment</SelectItem>
+                                        {clientAccounts.data.length > 0 ? (
+                                            clientAccounts.data.map(account => (
+                                                <SelectItem
+                                                    key={account.numCompte}
+                                                    value={`${account.numCompte}`}
+                                                >
+                                                    ACC{account.numCompte}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value={'none'} disabled>No accounts available</SelectItem>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
+
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="amount" className="text-right">
                                     Amount
                                 </Label>
-                                <Input id="amount" className="col-span-3" placeholder="Enter amount" type="number" />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="reason" className="text-right">
-                                    Reason
-                                </Label>
-                                <Textarea id="reason" className="col-span-3" placeholder="Enter reason for withdrawal (optional)" />
+                                <Input
+                                    id="amount"
+                                    className="col-span-3"
+                                    placeholder="Enter amount"
+                                    onChange={(e) => setNewWithDrawal({
+                                        ...newWithDrawal,
+                                        montant: parseInt(e.target.value)
+                                    })}
+                                    type="number"
+                                />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="initiatedBy" className="text-right">
                                     Initiated By
                                 </Label>
-                                <Input id="initiatedBy" className="col-span-3" value="EMP001" disabled />
+                                <Input id="initiatedBy" className="col-span-3" value={`EMP${current_emp_fullname}`}
+                                       disabled/>
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="submit">Submit Withdrawal</Button>
+                            <Button type="submit" onClick={handleAddWithdrawOperation}>Submit Withdrawal</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -250,40 +422,33 @@ const Withdrawals = () => {
                                 <TableHead>Amount</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Approved By</TableHead>
                                 <TableHead>Initiated By</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {currentWithdrawals.map((withdrawal) => (
-                                <TableRow key={withdrawal.id}>
-                                    <TableCell>{withdrawal.id}</TableCell>
+                                <TableRow key={withdrawal.numOperation}>
+                                    <TableCell>W{withdrawal.numOperation}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center">
                                             <Avatar className="h-8 w-8 mr-2">
 
-                                                <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${withdrawal.clientName}`} />
-                                                <AvatarFallback>{withdrawal.clientName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${withdrawal.compte.client.fullname}`} />
+                                                <AvatarFallback>{withdrawal.compte.client.fullname.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                             </Avatar>
-                                            <div>{withdrawal.clientName}</div>
+                                            <div>{withdrawal.compte.client.fullname}</div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{withdrawal.accountNumber}</TableCell>
-                                    <TableCell>${withdrawal.amount.toLocaleString()}</TableCell>
-                                    <TableCell>{format(new Date(withdrawal.date), 'MMM d, yyyy')}</TableCell>
+                                    <TableCell>ACC{withdrawal.compte.numCompte}</TableCell>
+                                    <TableCell className="text-red-500">-${withdrawal.montant.toLocaleString()}</TableCell>
+                                    <TableCell>{format(new Date(withdrawal.dateOperation), 'MMM d, yyyy')}</TableCell>
                                     <TableCell>
-                                        <Badge variant={
-                                            withdrawal.status === 'Approved' ? 'default' :
-                                                withdrawal.status === 'Pending' ? 'secondary' :
-                                                    withdrawal.status === 'Flagged' ? 'warning' :
-                                                        'destructive'
-                                        }>
+                                        <Badge className={`${withdrawal.status === "success" ? "bg-green-500 hover:bg-green-500" : "bg-red-500 hover:bg-red-500"}`}>
                                             {withdrawal.status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell>{withdrawal.approvedBy}</TableCell>
-                                    <TableCell>{withdrawal.initiatedBy}</TableCell>
+                                    <TableCell>{withdrawal.employe.fullname}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <Dialog>
@@ -294,7 +459,7 @@ const Withdrawals = () => {
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-4xl">
                                                     <DialogHeader>
-                                                        <DialogTitle>Withdrawal Details: {selectedWithdrawal?.id}</DialogTitle>
+                                                        <DialogTitle>Withdrawal Details: W{selectedWithdrawal.numOperation}</DialogTitle>
                                                         <DialogDescription>View and manage withdrawal information</DialogDescription>
                                                     </DialogHeader>
                                                     <div className="grid gap-4 py-4">
@@ -302,41 +467,31 @@ const Withdrawals = () => {
                                                             <TabsList>
                                                                 <TabsTrigger value="details">Transaction Details</TabsTrigger>
                                                                 <TabsTrigger value="client">Client Information</TabsTrigger>
-                                                                <TabsTrigger value="history">Transaction History</TabsTrigger>
-                                                                <TabsTrigger value="notes">Admin Notes</TabsTrigger>
                                                             </TabsList>
                                                             <TabsContent value="details">
                                                                 <div className="grid grid-cols-2 gap-4">
                                                                     <div>
                                                                         <h4 className="font-semibold">Transaction ID</h4>
-                                                                        <p>{selectedWithdrawal?.id}</p>
+                                                                        <p>W{selectedWithdrawal.numOperation}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Amount</h4>
-                                                                        <p>${selectedWithdrawal?.amount.toLocaleString()}</p>
+                                                                        <p>${selectedWithdrawal.montant.toLocaleString()}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Date</h4>
-                                                                        <p>{selectedWithdrawal?.date && format(new Date(selectedWithdrawal.date), 'MMM d, yyyy')}</p>
+                                                                        <p>{selectedWithdrawal.dateOperation && format(new Date(selectedWithdrawal.dateOperation), 'MMM d, yyyy')}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Status</h4>
-                                                                        <Badge variant={
-                                                                            selectedWithdrawal?.status === 'Approved' ? 'default' :
-                                                                                selectedWithdrawal?.status === 'Pending' ? 'secondary' :
-                                                                                    selectedWithdrawal?.status === 'Flagged' ? 'warning' :
-                                                                                        'destructive'
-                                                                        }>
-                                                                            {selectedWithdrawal?.status}
+                                                                        <Badge className={`${selectedWithdrawal.status === "success" ? "bg-green-500" : "bg-red-500"}`}>
+                                                                            {selectedWithdrawal.status}
                                                                         </Badge>
                                                                     </div>
-                                                                    <div>
-                                                                        <h4 className="font-semibold">Approved By</h4>
-                                                                        <p>{selectedWithdrawal?.approvedBy}</p>
-                                                                    </div>
+
                                                                     <div>
                                                                         <h4 className="font-semibold">Initiated By</h4>
-                                                                        <p>{selectedWithdrawal?.initiatedBy}</p>
+                                                                        <p>{selectedWithdrawal.employe.fullname}</p>
                                                                     </div>
                                                                 </div>
                                                             </TabsContent>
@@ -344,99 +499,26 @@ const Withdrawals = () => {
                                                                 <div className="grid grid-cols-2 gap-4">
                                                                     <div>
                                                                         <h4 className="font-semibold">Client Name</h4>
-                                                                        <p>{selectedWithdrawal?.clientName}</p>
+                                                                        <p>{selectedWithdrawal.compte.client.fullname}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Account Number</h4>
-                                                                        <p>{selectedWithdrawal?.accountNumber}</p>
+                                                                        <p>ACC{selectedWithdrawal.compte.numCompte}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Account Balance</h4>
-                                                                        <p>$50,000 (after withdrawal)</p>
+                                                                        <p>${selectedWithdrawal.compte.solde}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Client Since</h4>
-                                                                        <p>January 1, 2020</p>
-                                                                    </div>
-                                                                    <div className="col-span-2">
-                                                                        <Button variant="outline">View Full Profile</Button>
-                                                                    </div>
-                                                                </div>
-                                                            </TabsContent>
-                                                            <TabsContent value="history">
-                                                                <Table>
-                                                                    <TableHeader>
-                                                                        <TableRow>
-                                                                            <TableHead>Date</TableHead>
-                                                                            <TableHead>Type</TableHead>
-                                                                            <TableHead>Amount</TableHead>
-                                                                            <TableHead>Balance</TableHead>
-                                                                        </TableRow>
-                                                                    </TableHeader>
-                                                                    <TableBody>
-                                                                        <TableRow>
-                                                                            <TableCell>{format(new Date(), 'MMM d, yyyy')}</TableCell>
-                                                                            <TableCell>Withdrawal</TableCell>
-                                                                            <TableCell className="text-red-500">-${selectedWithdrawal?.amount.toLocaleString()}</TableCell>
-                                                                            <TableCell>$50,000</TableCell>
-                                                                        </TableRow>
-                                                                        <TableRow>
-                                                                            <TableCell>{format(new Date(Date.now() - 86400000), 'MMM d, yyyy')}</TableCell>
-                                                                            <TableCell>Deposit</TableCell>
-                                                                            <TableCell className="text-green-500">+$2,000.00</TableCell>
-                                                                            <TableCell>$52,000</TableCell>
-                                                                        </TableRow>
-                                                                    </TableBody>
-                                                                </Table>
-                                                            </TabsContent>
-                                                            <TabsContent value="notes">
-                                                                <Textarea className="w-full h-32 mb-4" placeholder="Add a note about this withdrawal..." />
-                                                                <div className="space-y-4">
-                                                                    <div className="bg-muted p-4 rounded-md">
-                                                                        <p className="font-semibold">Admin1</p>
-                                                                        <p className="text-sm text-muted-foreground">Withdrawal approved after verifying client identity.</p>
-                                                                        <p className="text-xs text-muted-foreground">{format(new Date(), 'MMM d, yyyy HH:mm')}</p>
+                                                                        <p>{selectedWithdrawal.compte.client.joinDate && format(new Date(selectedWithdrawal.compte.client.joinDate), 'MMM d, yyyy')}</p>
                                                                     </div>
                                                                 </div>
                                                             </TabsContent>
                                                         </Tabs>
                                                     </div>
-                                                    <DialogFooter>
-                                                        <div className="flex justify-between w-full">
-                                                            <div className="flex items-center space-x-2">
-                                                                <Switch id="urgent" />
-                                                                <Label htmlFor="urgent">Mark as Urgent</Label>
-                                                            </div>
-                                                            <div>
-                                                                <Button className="mr-2" variant="outline">Reject</Button>
-                                                                <Button>Approve</Button>
-                                                            </div>
-                                                        </div>
-                                                    </DialogFooter>
                                                 </DialogContent>
                                             </Dialog>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <ChevronDown className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent>
-                                                    <DropdownMenuItem>
-                                                        <Check className="mr-2 h-4 w-4" />
-                                                        Approve
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem>
-                                                        <X className="mr-2 h-4 w-4" />
-                                                        Reject
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem>
-                                                        <Flag className="mr-2 h-4 w-4" />
-                                                        Flag for Review
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
                                         </div>
                                     </TableCell>
                                 </TableRow>

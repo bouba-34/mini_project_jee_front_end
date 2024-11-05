@@ -2,24 +2,9 @@
 
 import * as React from "react"
 import {
-  ArrowDown,
-  ArrowUp,
-  Bell,
-  Copy,
-  CornerUpLeft,
-  CornerUpRight,
-  FileText,
-  GalleryVerticalEnd,
-  LineChart,
-  Link,
-  MoreHorizontal,
-  Settings2,
-  Star,
-  Trash,
-  Trash2,
+  Eye, LogOut,
+  Settings,
 } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import {
   Popover,
   PopoverContent,
@@ -28,126 +13,102 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {useEmployeStore} from "@/store";
+
 
 const data = [
-  [
-    {
-      label: "Customize Page",
-      icon: Settings2,
+  {
+    label: "View Profile Detail",
+    icon: Eye,
+    component: "Profile", // Composant à afficher
+  },
+  {
+    label: "Settings",
+    icon: Settings,
+    component: "SettingsComponent", // Composant à afficher
+  },
+  {
+    label: "Logout",
+    icon: LogOut,
+    action: () => {
+      console.log("Logout clicked");
+      // Ajoutez votre logique de déconnexion ici
     },
-    {
-      label: "Turn into wiki",
-      icon: FileText,
-    },
-  ],
-  [
-    {
-      label: "Copy Link",
-      icon: Link,
-    },
-    {
-      label: "Duplicate",
-      icon: Copy,
-    },
-    {
-      label: "Move to",
-      icon: CornerUpRight,
-    },
-    {
-      label: "Move to Trash",
-      icon: Trash2,
-    },
-  ],
-  [
-    {
-      label: "Undo",
-      icon: CornerUpLeft,
-    },
-    {
-      label: "View analytics",
-      icon: LineChart,
-    },
-    {
-      label: "Version History",
-      icon: GalleryVerticalEnd,
-    },
-    {
-      label: "Show delete pages",
-      icon: Trash,
-    },
-    {
-      label: "Notifications",
-      icon: Bell,
-    },
-  ],
-  [
-    {
-      label: "Import",
-      icon: ArrowUp,
-    },
-    {
-      label: "Export",
-      icon: ArrowDown,
-    },
-  ],
+  },
 ]
 
 export function NavActions() {
   const [isOpen, setIsOpen] = React.useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = React.useState(false); // État pour gérer l'affichage du dialogue
+  const setEmail = useEmployeStore(state => state.setEmail);
+    const setFullname = useEmployeStore(state => state.setFullname);
+    const setCode = useEmployeStore(state => state.setCode);
+
 
   React.useEffect(() => {
     setIsOpen(true)
   }, [])
 
+  const handleLogout = () => {
+    console.log("User logged out");
+    setEmail("");
+    setFullname("");
+    setCode("");
+    setShowLogoutDialog(false); // Fermez le dialogue après la déconnexion
+  };
+
   return (
-    <div className="flex items-center gap-2 text-sm">
-      <div className="hidden font-medium text-muted-foreground md:inline-block">
-        Edit Oct 08
-      </div>
-      <Button variant="ghost" size="icon" className="h-7 w-7">
-        <Star />
-      </Button>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 data-[state=open]:bg-accent"
+      <div className="flex items-center gap-2 text-sm">
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+          <PopoverTrigger asChild>
+            <Avatar>
+              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+          </PopoverTrigger>
+          <PopoverContent
+              className="w-56 overflow-hidden rounded-lg p-0"
+              align="end"
           >
-            <MoreHorizontal />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-56 overflow-hidden rounded-lg p-0"
-          align="end"
-        >
-          <Sidebar collapsible="none" className="bg-transparent">
-            <SidebarContent>
-              {data.map((group, index) => (
-                <SidebarGroup key={index} className="border-b last:border-none">
-                  <SidebarGroupContent className="gap-0">
-                    <SidebarMenu>
-                      {group.map((item, index) => (
-                        <SidebarMenuItem key={index}>
-                          <SidebarMenuButton>
-                            <item.icon /> <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              ))}
-            </SidebarContent>
-          </Sidebar>
-        </PopoverContent>
-      </Popover>
-    </div>
+            <Sidebar collapsible="none" className="bg-transparent">
+              <SidebarContent>
+                {data.map((element, index) => (
+                    <SidebarMenuButton key={index}>
+                      {element.label === "Logout" ? (
+                          <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+                            <DialogTrigger>
+                              <div className="flex items-center gap-2 p-3">
+                                <element.icon className="w-4 h-4"/>
+                                <span>{element.label}</span>
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>{element.label}</DialogTitle>
+                                <p>Êtes-vous sûr de vouloir vous déconnecter ?</p>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <Button onClick={() => setShowLogoutDialog(false)}>Annuler</Button>
+                                <Button onClick={handleLogout}>Confirmer</Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                      ) : (
+                          <div className="flex items-center gap-2 p-3" onClick={() => {/* Logique pour afficher le composant ou naviguer */}}>
+                            <element.icon className="w-4 h-4"/> <span>{element.label}</span>
+                          </div>
+                      )}
+                    </SidebarMenuButton>
+                ))}
+              </SidebarContent>
+            </Sidebar>
+          </PopoverContent>
+        </Popover>
+      </div>
   )
 }

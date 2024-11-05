@@ -5,13 +5,16 @@ import {Separator} from "@/components/ui/separator";
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb";
 import {NavActions} from "@/components/nav-actions";
 import Dashboard from "@/components/dashboard";
-import {useSideBarStore} from "@/store";
-import Clients from "@/components/clients";
+import {useEmployeStore, useLoginStore, useSideBarStore} from "@/store";
 import Accounts from "@/components/accounts";
 import Withdrawals from "@/components/withdrawals";
 import Deposits from "@/components/deposits";
 import Workers from "@/components/workers";
 import Groups from "@/components/groups";
+import ClientSection from "@/components/clients";
+import {useRouter} from "next/navigation";
+import toast from "react-hot-toast";
+
 
 const breadcrumbTitles = [
     "Dashboard",
@@ -24,8 +27,15 @@ const breadcrumbTitles = [
 ];
 
 const MainContent = () => {
+    const router = useRouter();
     const itemOpenIndex = useSideBarStore(state => state.itemOpenIndex);
-    //console.log(itemOpenIndex);
+    const email = useEmployeStore(state => state.email);
+    if(!email) {
+        router.push("/login");
+        //toast.success("You need to login first");
+        return null;
+    }
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -49,10 +59,8 @@ const MainContent = () => {
                     </div>
                 </header>
                 <div className="flex flex-1 flex-col gap-4 px-4 py-10">
-                    {/*<div className=" h-24 w-full max-w-3xl rounded-xl bg-red-400" />
-                  <div className=" h-full w-full max-w-3xl rounded-xl bg-blue-600" />*/}
                     {itemOpenIndex === 0 && <Dashboard />}
-                    {itemOpenIndex === 1 && <Clients />}
+                    {itemOpenIndex === 1 && <ClientSection />}
                     {itemOpenIndex === 2 && <Accounts />}
                     {itemOpenIndex === 3 && <Withdrawals />}
                     {itemOpenIndex === 4 && <Deposits />}
