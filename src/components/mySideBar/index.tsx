@@ -5,7 +5,7 @@ import {Separator} from "@/components/ui/separator";
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb";
 import {NavActions} from "@/components/nav-actions";
 import Dashboard from "@/components/dashboard";
-import {useEmployeStore, useLoginStore, useSideBarStore} from "@/store";
+import {useEmployeStore, useSideBarStore} from "@/store";
 import Accounts from "@/components/accounts";
 import Withdrawals from "@/components/withdrawals";
 import Deposits from "@/components/deposits";

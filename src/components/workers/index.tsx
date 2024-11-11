@@ -5,14 +5,6 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Input} from "@/components/ui/input";
-import {Switch} from "@/components/ui/switch";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel, DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import {
     Dialog,
     DialogContent,
@@ -26,53 +18,170 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Label} from "@/components/ui/label";
 import {Badge} from "@/components/ui/badge";
 import {format} from "date-fns";
-import {useState} from "react";
-import {ArrowUpRight, ChevronDown,
-    Edit, Eye, Filter,
+import {useEffect, useState} from "react";
+import {
+    Edit, Eye,
     Search, UserPlus, Users,
-    Lock, Mail, Phone,UserMinus, Briefcase
+    Lock, Mail, Phone, UserMinus, Briefcase, Trash2
 } from "lucide-react";
 import {Separator} from "@radix-ui/react-menu";
+import {addEmploye, deleteEmploye, getCollaborators, getEmployes, getGroupe} from "@/actions/use-dashboard";
+import toast from "react-hot-toast";
+
+type SelectedEmployeeProps = {
+    codeEmploye: number;
+    fullname: string;
+    email: string;
+    phone: string;
+    address: string;
+    role: string;
+    employe_sup: {
+        codeEmploye: number;
+        fullname: string;
+    };
+    joinDate: string;
+    groupe: {
+        numGroupe: number;
+        nomGroupe: string;
+    },
+}
+
+type EmployeDataProps = {
+    code: string;
+    data: SelectedEmployeeProps[];
+}
+
+type CollaboratorProps = {
+    code: number;
+    data:{
+        id: number,
+        fullname: string,
+    }[]
+}
+
+export type NewEmployeProps = {
+    fullname: string,
+    email: string,
+    phone: string,
+    address: string,
+    role: string,
+    password: string,
+}
+
+type GroupDataProps = {
+    data: {
+        numGroupe: number,
+        nomGroupe: string,
+    }[]
+}
 
 const Workers = () => {
 
-    const employeeData = [
-        { id: 'EMP001', name: 'Alice Johnson', position: 'Software Engineer', group: 'Development', supervisor: 'Bob Smith', status: 'Active', dateJoined: '2022-03-15' },
-        { id: 'EMP002', name: 'Charlie Brown', position: 'UI/UX Designer', group: 'Design', supervisor: 'Diana Prince', status: 'Active', dateJoined: '2022-05-20' },
-        { id: 'EMP003', name: 'Eva Green', position: 'Project Manager', group: 'Management', supervisor: 'Frank Castle', status: 'On Leave', dateJoined: '2021-11-10' },
-        { id: 'EMP004', name: 'George Harris', position: 'Data Analyst', group: 'Analytics', supervisor: 'Helen Cho', status: 'Active', dateJoined: '2023-01-05' },
-        { id: 'EMP005', name: 'Ivy Wilson', position: 'Marketing Specialist', group: 'Marketing', supervisor: 'Jack Ryan', status: 'Inactive', dateJoined: '2022-08-30' },
-        { id: 'EMP006', name: 'Jack Reacher', position: 'Sales Manager', group: 'Sales', supervisor: 'Alice Johnson', status: 'Active', dateJoined: '2020-02-12' },
-        { id: 'EMP007', name: 'Kate Winslet', position: 'HR Specialist', group: 'Human Resources', supervisor: 'Bob Smith', status: 'Active', dateJoined: '2021-06-18' },
-        { id: 'EMP008', name: 'Liam Neeson', position: 'Software Tester', group: 'Development', supervisor: 'Diana Prince', status: 'Active', dateJoined: '2022-09-25' },
-        { id: 'EMP009', name: 'Megan Fox', position: 'Content Writer', group: 'Marketing', supervisor: 'Jack Ryan', status: 'Inactive', dateJoined: '2021-03-15' },
-        { id: 'EMP010', name: 'Noah Centineo', position: 'Graphic Designer', group: 'Design', supervisor: 'Helen Cho', status: 'Active', dateJoined: '2022-11-05' },
-        { id: 'EMP011', name: 'Olivia Wilde', position: 'DevOps Engineer', group: 'Development', supervisor: 'Frank Castle', status: 'Active', dateJoined: '2022-01-22' },
-        { id: 'EMP012', name: 'Peter Parker', position: 'Data Scientist', group: 'Analytics', supervisor: 'Bob Smith', status: 'On Leave', dateJoined: '2023-02-14' },
-        { id: 'EMP013', name: 'Quentin Tarantino', position: 'Creative Director', group: 'Marketing', supervisor: 'Diana Prince', status: 'Active', dateJoined: '2023-03-10' },
-        { id: 'EMP014', name: 'Rihanna', position: 'Social Media Manager', group: 'Marketing', supervisor: 'Jack Ryan', status: 'Active', dateJoined: '2022-07-30' },
-        { id: 'EMP015', name: 'Samuel L. Jackson', position: 'IT Support', group: 'Support', supervisor: 'Helen Cho', status: 'Inactive', dateJoined: '2021-12-01' },
-        { id: 'EMP016', name: 'Tina Fey', position: 'Business Analyst', group: 'Management', supervisor: 'Frank Castle', status: 'Active', dateJoined: '2022-04-20' },
-        { id: 'EMP017', name: 'Uma Thurman', position: 'Product Manager', group: 'Product', supervisor: 'Bob Smith', status: 'Active', dateJoined: '2023-05-15' },
-        { id: 'EMP018', name: 'Vin Diesel', position: 'Network Engineer', group: 'IT', supervisor: 'Diana Prince', status: 'On Leave', dateJoined: '2021-10-25' },
-        { id: 'EMP019', name: 'Will Smith', position: 'Customer Support', group: 'Support', supervisor: 'Jack Ryan', status: 'Active', dateJoined: '2022-11-01' },
-        { id: 'EMP020', name: 'Xena Warrior', position: 'Operations Manager', group: 'Operations', supervisor: 'Helen Cho', status: 'Inactive', dateJoined: '2022-02-28' },
-    ];
+    const [employeeData, setEmployeeData] = useState<EmployeDataProps>({
+        code: "",
+        data: [],
+    });
 
+    const [groupData, setGroupData] = useState<GroupDataProps>({
+        data: [],
+    });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const employes = await getEmployes()
+            setEmployeeData(employes);
+            const groupes = await getGroupe()
+            setGroupData(groupes);
+        }
+        fetchData();
+    }, []);
 
     const [searchTerm, setSearchTerm] = useState('')
-    const [selectedEmployee, setSelectedEmployee] = useState(null)
+    const [selectedEmployee, setSelectedEmployee] = useState<SelectedEmployeeProps>({
+        codeEmploye: 0,
+        fullname: "",
+        email: "",
+        phone: "",
+        address: "",
+        role: "",
+        employe_sup: {
+            codeEmploye: 0,
+            fullname: "",
+        },
+        joinDate: "",
+        groupe: {
+            numGroupe: 0,
+            nomGroupe: "",
+        },
+    })
     const [isNewEmployeeDialogOpen, setIsNewEmployeeDialogOpen] = useState(false)
+    const [SelectedEmployeCollaborators, setSelectedEmployeCollaborators] = useState<CollaboratorProps>({
+        code: 0,
+        data: [],
+    })
+
+    const [newEmployee, setNewEmployee] = useState<NewEmployeProps>({
+        fullname: "",
+        email: "",
+        phone: "",
+        address: "",
+        role: "",
+        password: "",
+    })
+    const [supervisorSearchTerm, setSupervisorSearchTerm] = useState('');
+    const [suggestions, setSuggestions] = useState<SelectedEmployeeProps[]>([])
+    const [inputText, setInputText] = useState('')
+    const [supervisorId, setSupervisorId] = useState<number>(0)
+    const [groupId, setGroupId] = useState('')
+
+    useEffect(() => {
+        if (supervisorSearchTerm.length > 0) {
+            const suggestionsFiltrees = employeeData.data.filter((employee:SelectedEmployeeProps) =>
+                employee.fullname.toLowerCase().includes(supervisorSearchTerm.toLowerCase())
+            )
+            setSuggestions(suggestionsFiltrees)
+        } else {
+            setSuggestions([])
+        }
+    }, [supervisorSearchTerm])
+
+    const handleSelection = (element: SelectedEmployeeProps) => {
+        setInputText(element.fullname)
+        setSupervisorId(element.codeEmploye)
+        setSupervisorSearchTerm("")
+        setSuggestions([])
+    }
+
+    const handleAddEmployee = async () => {
+        try {
+            await addEmploye(newEmployee, supervisorId, groupId)
+            setIsNewEmployeeDialogOpen(false)
+            toast.success("Employee added successfully")
+            setNewEmployee({
+                fullname: "",
+                email: "",
+                phone: "",
+                address: "",
+                role: "",
+                password: "",
+            })
+            setSupervisorId(0)
+            setGroupId('')
+        } catch (error) {
+            console.error(error)
+            toast.error("An error occurred while adding the employee")
+        }
+    }
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const employeesPerPage = 5; // Nombre d'employés par page
 
     // Filtrer les employés
-    const filteredEmployees = employeeData.filter(employee =>
-        employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.group.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredEmployees = employeeData.data.filter(employee =>
+        employee.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.groupe.nomGroupe.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Calculer les employés à afficher
@@ -86,54 +195,26 @@ const Workers = () => {
     // Total des pages
     const totalPages = Math.ceil(filteredEmployees.length / employeesPerPage);
 
+    const handleSelectEmployee = async (employee: SelectedEmployeeProps) => {
+        setSelectedEmployee(employee);
+        const collaborators = await getCollaborators(employee.codeEmploye);
+        setSelectedEmployeCollaborators(collaborators);
+    }
+
+    const handleDeleteEmploye = async (id: number) => {
+        try {
+            await deleteEmploye(id)
+            toast.success("Employee deleted successfully")
+        } catch (error) {
+            console.error(error)
+            toast.error("An error occurred while deleting the employee")
+        }
+    }
+
 
     return (
         <>
             <h1 className="text-3xl font-bold mb-6">Employee Management</h1>
-
-            {/* Employee Overview Panel */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground"/>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">1,234</div>
-                        <p className="text-xs text-muted-foreground">+5% from last month</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Employees</CardTitle>
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground"/>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">1,180</div>
-                        <p className="text-xs text-muted-foreground">95.6% of total</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Number of Groups</CardTitle>
-                        <Briefcase className="h-4 w-4 text-muted-foreground"/>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">15</div>
-                        <p className="text-xs text-muted-foreground">Across 5 departments</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Avg. Employees per Supervisor</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground"/>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">8.2</div>
-                        <p className="text-xs text-muted-foreground">Optimal range: 5-10</p>
-                    </CardContent>
-                </Card>
-            </div>
 
             {/* Search, Filters, and Add Employee Button */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -146,22 +227,6 @@ const Workers = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                            <Filter className="mr-2 h-4 w-4"/>
-                            Filters
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[200px]">
-                        <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                        <DropdownMenuSeparator/>
-                        <DropdownMenuItem>Group</DropdownMenuItem>
-                        <DropdownMenuItem>Supervisor</DropdownMenuItem>
-                        <DropdownMenuItem>Status</DropdownMenuItem>
-                        <DropdownMenuItem>Date Joined</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
                 <Dialog open={isNewEmployeeDialogOpen} onOpenChange={setIsNewEmployeeDialogOpen}>
                     <DialogTrigger asChild>
                         <Button>
@@ -177,17 +242,61 @@ const Workers = () => {
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-2 items-center gap-4">
+                                <Label htmlFor="supervisor" className="text-right">
+                                    Supervisor
+                                </Label>
+                                <div className="relative">
+                                <Input
+                                    id="supervisor"
+                                    className="col-span-3"
+                                    placeholder="Supervisor Name"
+                                    value={inputText}
+                                    onChange={(e) => {
+                                        setSupervisorSearchTerm(e.target.value)
+                                        setInputText(e.target.value)
+                                    }}
+                                />
+                                {suggestions.length > 0 && (
+                                    <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-b-md shadow-lg max-h-60 overflow-auto">
+                                        {suggestions.map((suggestion, index) => (
+                                            <li
+                                                key={index}
+                                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                                onClick={() => handleSelection(suggestion)}
+                                            >
+                                                <div className="flex items-center">
+                                                    <Avatar className="h-8 w-8 mr-2">
+                                                        <AvatarImage
+                                                            src={`https://api.dicebear.com/6.x/initials/svg?seed=${suggestion.fullname}`}/>
+                                                        <AvatarFallback>{suggestion.fullname.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>{suggestion.fullname}</div>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                </div>
+                            </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="name" className="text-right">
-                                    Name
+                                    Full name
                                 </Label>
-                                <Input id="name" className="col-span-3" placeholder="Full Name"/>
+                                <Input
+                                    id="name"
+                                    className="col-span-3"
+                                    placeholder="Full Name"
+                                    onChange={(e) => setNewEmployee({...newEmployee, fullname: e.target.value})}
+                                />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="position" className="text-right">
                                     Position
                                 </Label>
-                                <Select>
+                                <Select
+                                    onValueChange={(value) => setNewEmployee({...newEmployee, role: value})}
+                                >
                                     <SelectTrigger className="col-span-3">
                                         <SelectValue placeholder="Select position"/>
                                     </SelectTrigger>
@@ -195,69 +304,78 @@ const Workers = () => {
                                         <SelectItem value="engineer">Software Engineer</SelectItem>
                                         <SelectItem value="designer">UI/UX Designer</SelectItem>
                                         <SelectItem value="manager">Project Manager</SelectItem>
+                                        <SelectItem value="directeur comptable">Directeur Comptable</SelectItem>
+                                        <SelectItem value="comptable">Comptable</SelectItem>
                                         <SelectItem value="analyst">Data Analyst</SelectItem>
                                         <SelectItem value="marketing">Marketing Specialist</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
+
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="group" className="text-right">
                                     Group
                                 </Label>
-                                <Select>
+                                <Select
+                                    onValueChange={(value) => setGroupId(value)}
+                                >
                                     <SelectTrigger className="col-span-3">
                                         <SelectValue placeholder="Select group"/>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="development">Development</SelectItem>
-                                        <SelectItem value="design">Design</SelectItem>
-                                        <SelectItem value="management">Management</SelectItem>
-                                        <SelectItem value="analytics">Analytics</SelectItem>
-                                        <SelectItem value="marketing">Marketing</SelectItem>
+                                        {groupData.data.map((group) => (
+                                            <SelectItem key={group.numGroupe} value={group.numGroupe.toString()}>{group.nomGroupe}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="supervisor" className="text-right">
-                                    Supervisor
+                                <Label htmlFor="email" className="text-right">
+                                    Email
                                 </Label>
-                                <Select>
-                                    <SelectTrigger className="col-span-3">
-                                        <SelectValue placeholder="Select supervisor"/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="bob">Bob Smith</SelectItem>
-                                        <SelectItem value="diana">Diana Prince</SelectItem>
-                                        <SelectItem value="frank">Frank Castle</SelectItem>
-                                        <SelectItem value="helen">Helen Cho</SelectItem>
-                                        <SelectItem value="jack">Jack Ryan</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Input
+                                    id="email"
+                                    className="col-span-3"
+                                    placeholder="Email Address"
+                                    onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+                                />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="status" className="text-right">
-                                    Status
+                                <Label htmlFor="phone" className="text-right">
+                                    Phone
                                 </Label>
-                                <Select>
-                                    <SelectTrigger className="col-span-3">
-                                        <SelectValue placeholder="Select status"/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="inactive">Inactive</SelectItem>
-                                        <SelectItem value="onleave">On Leave</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Input
+                                    id="phone"
+                                    className="col-span-3"
+                                    placeholder="Phone Number"
+                                    onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
+                                />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="dateJoined" className="text-right">
-                                    Date Joined
+                                <Label htmlFor="address" className="text-right">
+                                    Address
                                 </Label>
-                                <Input id="dateJoined" className="col-span-3" type="date"/>
+                                <Input
+                                    id="address"
+                                    className="col-span-3"
+                                    placeholder="Home Address"
+                                    onChange={(e) => setNewEmployee({...newEmployee, address: e.target.value})}
+                                />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="password" className="text-right">
+                                    Password
+                                </Label>
+                                <Input
+                                    id="password"
+                                    className="col-span-3"
+                                    placeholder="Password"
+                                    onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})}
+                                />
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="submit">Save Employee</Button>
+                            <Button type="submit" onClick={handleAddEmployee}>Save Employee</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -279,52 +397,44 @@ const Workers = () => {
                                 <TableHead>Position</TableHead>
                                 <TableHead>Group</TableHead>
                                 <TableHead>Supervisor</TableHead>
-                                <TableHead>Status</TableHead>
+                                {/*<TableHead>Status</TableHead>*/}
                                 <TableHead>Date Joined</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {currentEmployees.map((employee) => (
-                                <TableRow key={employee.id}>
-                                    <TableCell>{employee.id}</TableCell>
+                                <TableRow key={employee.codeEmploye}>
+                                    <TableCell>EMP{employee.codeEmploye}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center">
                                             <Avatar className="h-8 w-8 mr-2">
-                                                <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${employee.name}`}/>
-                                                <AvatarFallback>{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                <AvatarImage
+                                                    src={`https://api.dicebear.com/6.x/initials/svg?seed=${employee.fullname}`}/>
+                                                <AvatarFallback>{employee.fullname.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                             </Avatar>
-                                            <div>{employee.name}</div>
+                                            <div>{employee.fullname}</div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{employee.position}</TableCell>
-                                    <TableCell>{employee.group}</TableCell>
-                                    <TableCell>{employee.supervisor}</TableCell>
+                                    <TableCell>{employee.role}</TableCell>
+                                    <TableCell>{employee.groupe.nomGroupe}</TableCell>
+                                    <TableCell>{employee.employe_sup ? employee.employe_sup.fullname : "N/A"}</TableCell>
                                     <TableCell>
-                                        <Badge variant={
-                                            employee.status === 'Active' ? 'default' :
-                                                employee.status === 'Inactive' ? 'secondary' :
-                                                    'outline'
-                                        }>
-                                            {employee.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        {employee.dateJoined ? format(new Date(employee.dateJoined), 'MMM d, yyyy') : 'N/A'}
+                                        {employee.joinDate ? format(new Date(employee.joinDate), 'MMM d, yyyy') : 'N/A'}
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <Dialog>
                                                 <DialogTrigger asChild>
                                                     <Button variant="ghost" size="icon"
-                                                            onClick={() => setSelectedEmployee(employee)}>
+                                                            onClick={() => handleSelectEmployee(employee)}>
                                                         <Eye className="h-4 w-4"/>
                                                     </Button>
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-4xl">
                                                     <DialogHeader>
                                                         <DialogTitle>Employee
-                                                            Profile: {selectedEmployee?.name}</DialogTitle>
+                                                            Profile: {selectedEmployee.fullname}</DialogTitle>
                                                         <DialogDescription>View and manage employee
                                                             details</DialogDescription>
                                                     </DialogHeader>
@@ -335,46 +445,33 @@ const Workers = () => {
                                                                     Details</TabsTrigger>
                                                                 <TabsTrigger value="history">Employment
                                                                     History</TabsTrigger>
-                                                                <TabsTrigger value="projects">Assigned
-                                                                    Projects</TabsTrigger>
-                                                                <TabsTrigger value="permissions">Access &
-                                                                    Permissions</TabsTrigger>
+                                                                <TabsTrigger value="collaborators">Collaborators</TabsTrigger>
                                                             </TabsList>
                                                             <TabsContent value="details">
                                                                 <div className="grid grid-cols-2 gap-4">
                                                                     <div>
                                                                         <h4 className="font-semibold">Employee ID</h4>
-                                                                        <p>{selectedEmployee?.id}</p>
+                                                                        <p>EMP{selectedEmployee.codeEmploye}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Name</h4>
-                                                                        <p>{selectedEmployee?.name}</p>
+                                                                        <p>{selectedEmployee.fullname}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Position</h4>
-                                                                        <p>{selectedEmployee?.position}</p>
+                                                                        <p>{selectedEmployee.role}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Group</h4>
-                                                                        <p>{selectedEmployee?.group}</p>
+                                                                        <p>{selectedEmployee.groupe.nomGroupe}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Supervisor</h4>
-                                                                        <p>{selectedEmployee?.supervisor}</p>
-                                                                    </div>
-                                                                    <div>
-                                                                        <h4 className="font-semibold">Status</h4>
-                                                                        <Badge variant={
-                                                                            selectedEmployee?.status === 'Active' ? 'default' :
-                                                                                selectedEmployee?.status === 'Inactive' ? 'secondary' :
-                                                                                    'outline'
-                                                                        }>
-                                                                            {selectedEmployee?.status}
-                                                                        </Badge>
+                                                                        <p>{selectedEmployee.employe_sup ? selectedEmployee.employe_sup.fullname : "N/A"}</p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="font-semibold">Date Joined</h4>
-                                                                        <p>{selectedEmployee?.dateJoined ? format(new Date(selectedEmployee.dateJoined), 'MMM d, yyyy') : 'N/A'}</p>
+                                                                        <p>{selectedEmployee.joinDate ? format(new Date(selectedEmployee.joinDate), 'MMM d, yyyy') : 'N/A'}</p>
                                                                     </div>
                                                                 </div>
                                                                 <Separator className="my-4"/>
@@ -383,11 +480,11 @@ const Workers = () => {
                                                                     <div className="grid grid-cols-2 gap-4">
                                                                         <div className="flex items-center">
                                                                             <Mail className="h-4 w-4 mr-2"/>
-                                                                            <p>{selectedEmployee?.name.toLowerCase().replace(' ', '.')}@company.com</p>
+                                                                            <p>{selectedEmployee.email.toLowerCase()}</p>
                                                                         </div>
                                                                         <div className="flex items-center">
                                                                             <Phone className="h-4 w-4 mr-2"/>
-                                                                            <p>+1 (555) 123-4567</p>
+                                                                            <p>{selectedEmployee.phone}</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -398,87 +495,57 @@ const Workers = () => {
                                                                 <div className="space-y-4">
                                                                     <div>
                                                                         <h4 className="font-semibold">Current Position</h4>
-                                                                        <p>{selectedEmployee?.position} (Since {selectedEmployee?.dateJoined ? format(new Date(selectedEmployee.dateJoined), 'MMM yyyy') : 'N/A'})</p>
-                                                                    </div>
-                                                                    <div>
-                                                                        <h4 className="font-semibold">Previous Positions</h4>
-                                                                        <ul className="list-disc list-inside">
-                                                                            <li>Junior {selectedEmployee?.position} (Jan 2021 - {selectedEmployee?.dateJoined ? format(new Date(selectedEmployee.dateJoined), 'MMM yyyy') : 'N/A'})</li>
-                                                                            <li>Intern (Jun 2020 - Dec 2020)</li>
-                                                                        </ul>
+                                                                        <p>{selectedEmployee.role} (Since {selectedEmployee?.joinDate ? format(new Date(selectedEmployee.joinDate), 'MMM yyyy') : 'N/A'})</p>
                                                                     </div>
                                                                 </div>
                                                             </TabsContent>
 
-                                                            <TabsContent value="projects">
-                                                                <div className="space-y-4">
-                                                                    <div>
-                                                                        <h4 className="font-semibold">Current Projects</h4>
-                                                                        <ul className="list-disc list-inside">
-                                                                            <li>Project Alpha (Lead Developer)</li>
-                                                                            <li>Project Beta (Contributor)</li>
-                                                                        </ul>
+                                                            <TabsContent value="collaborators">
+                                                                {SelectedEmployeCollaborators.data ? (
+                                                                    <div className="space-y-4">
+                                                                            <div className="grid grid-cols-2 gap-4">
+                                                                                {SelectedEmployeCollaborators.data.map(collaborator => (
+                                                                                    <div key={collaborator.id}>
+                                                                                        <p>{collaborator.fullname}</p>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
                                                                     </div>
-                                                                    <div>
-                                                                        <h4 className="font-semibold">Completed Projects</h4>
-                                                                        <ul className="list-disc list-inside">
-                                                                            <li>Project Gamma (Feb 2023 - May 2023)</li>
-                                                                            <li>Project Delta (Sep 2022 - Jan 2023)</li>
-                                                                        </ul>
+                                                                ) : (
+                                                                    <div className="space-y-4">
+                                                                        <div>
+                                                                            <p>N/A</p>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
+                                                                )}
                                                             </TabsContent>
-
-                                                            <TabsContent value="permissions">
-                                                                <div className="space-y-4">
-                                                                    <div>
-                                                                        <h4 className="font-semibold">System Access Level</h4>
-                                                                        <Badge>Level 2</Badge>
-                                                                    </div>
-                                                                    <div>
-                                                                        <h4 className="font-semibold">Permissions</h4>
-                                                                        <ul className="list-disc list-inside">
-                                                                            <li>View and edit project details</li>
-                                                                            <li>Access development environments</li>
-                                                                            <li>Submit code for review</li>
-                                                                        </ul>
-                                                                    </div>
-                                                                    <div className="flex items-center space-x-2">
-                                                                        <Switch id="airplane-mode"/>
-                                                                        <Label htmlFor="airplane-mode">Enable admin access</Label>
-                                                                    </div>
-                                                                </div>
-                                                            </TabsContent>
-
                                                         </Tabs>
                                                     </div>
-                                                    <DialogFooter>
-                                                        <Button variant="outline">Edit Profile</Button>
-                                                        <Button>Save Changes</Button>
-                                                    </DialogFooter>
                                                 </DialogContent>
                                             </Dialog>
-                                            <Button variant="ghost" size="icon">
+                                            {/*<Button variant="ghost" size="icon">
                                                 <Edit className="h-4 w-4"/>
-                                            </Button>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <ChevronDown className="h-4 w-4"/>
+                                            </Button>*/}
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon"
+                                                            onClick={() => setSelectedEmployee(employee)}>
+                                                        <Trash2 className="h-4 w-4"/>
                                                     </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent>
-                                                    <DropdownMenuItem>
-                                                        <UserMinus className="mr-2 h-4 w-4"/>
-                                                        Suspend Employee
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator/>
-                                                    <DropdownMenuItem>
-                                                        <Lock className="mr-2 h-4 w-4"/>
-                                                        Change Permissions
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Delete Client</DialogTitle>
+                                                        <DialogDescription>Are you sure you want to delete this
+                                                            worker?</DialogDescription>
+                                                    </DialogHeader>
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button variant="ghost">Cancel</Button>
+                                                        <Button variant="destructive"
+                                                                onClick={() => handleDeleteEmploye(employee.codeEmploye)}>Delete</Button>
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
                                         </div>
                                     </TableCell>
                                 </TableRow>

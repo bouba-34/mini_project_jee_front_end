@@ -70,7 +70,7 @@ const Accounts = () => {
         const fetchData = async () => {
             const response = await getComptes();
             setData(response);
-            console.log("account", data)
+            //console.log("account", data)
         }
         fetchData();
     }, []);
@@ -99,7 +99,7 @@ const Accounts = () => {
         solde: 0
     })
 
-    const [selectedClientForAdd, setSelectedClientForAdd] = useState<AccountProps>({
+    /*const [selectedClientForAdd, setSelectedClientForAdd] = useState<AccountProps>({
         numCompte: 0,
         dateCreation: '',
         solde: 0,
@@ -113,7 +113,7 @@ const Accounts = () => {
         decouvert: 0,
         taux: 0,
         decouvertInitial: 0
-    })
+    })*/
     const [clientSearchTerm, setClientSearchTerm] = useState('');
     const [suggestions, setSuggestions] = useState<AccountProps[]>([])
     const [inputText, setInputText] = useState('')
@@ -130,7 +130,7 @@ const Accounts = () => {
     }, [clientSearchTerm])
 
     const handleSelection = (element: AccountProps) => {
-        setSelectedClientForAdd(element)
+        //setSelectedClientForAdd(element)
         //console.log(selectedClientForAdd)
         setInputText(element.client.fullname)
         newAccount.clientId = element.client.codeClient
@@ -138,7 +138,7 @@ const Accounts = () => {
         setSuggestions([])
     }
 
-    const handleRemove = (element: string) => {
+    /*const handleRemove = (element: string) => {
         setSelectedClientForAdd({
             numCompte: 0,
             dateCreation: '',
@@ -154,7 +154,7 @@ const Accounts = () => {
             taux: 0,
             decouvertInitial: 0
         })
-    }
+    }*/
 
     const handleDeleteAccount = async (id: number) => {
         try {

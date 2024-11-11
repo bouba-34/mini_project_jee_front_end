@@ -1,15 +1,7 @@
 // client section
 "use client"
-import { DropdownMenuContent } from "@radix-ui/react-dropdown-menu";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "../ui/card";
 import {Users, UserPlus, AlertCircle, Wallet, Search, Trash2, Edit, Filter, Eye, PlusCircle} from "lucide-react";
-import {
-    DropdownMenu,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import {Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious} from "@/components/ui/pagination";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
@@ -174,12 +166,13 @@ const ClientSection = () => {
 
     return (
         <>
+            <h1 className="text-3xl font-bold mb-6">Clients Management</h1>
             {/* Client Overview Panel */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 mb-8">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <Users className="h-4 w-4 text-muted-foreground"/>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{data.metadata.totalClients}</div>
@@ -189,7 +182,7 @@ const ClientSection = () => {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">New Clients</CardTitle>
-                        <UserPlus className="h-4 w-4 text-muted-foreground" />
+                        <UserPlus className="h-4 w-4 text-muted-foreground"/>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{data.metadata.newClientsThisMonth}</div>
@@ -200,7 +193,7 @@ const ClientSection = () => {
             {/* Search and Filters */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
                 <div className="relative flex-grow">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground"/>
                     <Input
                         placeholder="Search clients..."
                         className="pl-8"
@@ -212,7 +205,7 @@ const ClientSection = () => {
                 <Dialog>
                     <DialogTrigger asChild>
                         <Button>
-                            <PlusCircle className="mr-2 h-4 w-4" />
+                            <PlusCircle className="mr-2 h-4 w-4"/>
                             New client
                         </Button>
                     </DialogTrigger>
@@ -224,7 +217,7 @@ const ClientSection = () => {
                             <Input
                                 placeholder="Fullname"
                                 value={newClient.fullname}
-                                onChange={(e) => setNewClient({ ...newClient, fullname: e.target.value })}
+                                onChange={(e) => setNewClient({...newClient, fullname: e.target.value})}
                             />
                             <Input
                                 placeholder="Type de compte"
@@ -238,7 +231,7 @@ const ClientSection = () => {
                                 onChange={(e) => setSolde(e.target.value)}
                             />
                             <Input
-                                placeholder= {account_type === "cc" ? "Découvert autorisé" : "Taux d'intérêt"}
+                                placeholder={account_type === "cc" ? "Découvert autorisé" : "Taux d'intérêt"}
                                 type="number"
                                 value={account_type === "cc" ? decouvert : taux}
                                 onChange={(e) => account_type === "cc" ? setDecouvert(e.target.value) : setTaux(e.target.value)}
@@ -246,17 +239,17 @@ const ClientSection = () => {
                             <Input
                                 placeholder="Email"
                                 value={newClient.email}
-                                onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                                onChange={(e) => setNewClient({...newClient, email: e.target.value})}
                             />
                             <Input
                                 placeholder="Adresse"
                                 value={newClient.address}
-                                onChange={(e) => setNewClient({ ...newClient, address: e.target.value })}
+                                onChange={(e) => setNewClient({...newClient, address: e.target.value})}
                             />
                             <Input
                                 placeholder="Téléphone"
                                 value={newClient.phone}
-                                onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+                                onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
                             />
                         </div>
                         <Button onClick={handleAddClient}>Ajouter</Button>
@@ -289,7 +282,8 @@ const ClientSection = () => {
                                     <TableCell>
                                         <div className="flex items-center">
                                             <Avatar className="h-8 w-8 mr-2">
-                                                <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${client.fullname}`} />
+                                                <AvatarImage
+                                                    src={`https://api.dicebear.com/6.x/initials/svg?seed=${client.fullname}`}/>
                                                 <AvatarFallback>{client.fullname.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                             </Avatar>
                                             <div>
@@ -319,20 +313,25 @@ const ClientSection = () => {
                                         <div className="flex items-center gap-2">
                                             <Dialog>
                                                 <DialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" onClick={() => setSelectedClient(client)}>
-                                                        <Eye className="h-4 w-4" />
+                                                    <Button variant="ghost" size="icon"
+                                                            onClick={() => setSelectedClient(client)}>
+                                                        <Eye className="h-4 w-4"/>
                                                     </Button>
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-3xl">
                                                     <DialogHeader>
-                                                        <DialogTitle>Client Profile: {selectedClient?.fullname}</DialogTitle>
-                                                        <DialogDescription>View and manage client details</DialogDescription>
+                                                        <DialogTitle>Client
+                                                            Profile: {selectedClient?.fullname}</DialogTitle>
+                                                        <DialogDescription>View and manage client
+                                                            details</DialogDescription>
                                                     </DialogHeader>
                                                     <div className="grid gap-4 py-4">
                                                         <Tabs defaultValue="personal" className="w-full">
                                                             <TabsList>
-                                                                <TabsTrigger value="personal">Personal Info</TabsTrigger>
-                                                                <TabsTrigger value="account">Account Details</TabsTrigger>
+                                                                <TabsTrigger value="personal">Personal
+                                                                    Info</TabsTrigger>
+                                                                <TabsTrigger value="account">Account
+                                                                    Details</TabsTrigger>
                                                             </TabsList>
                                                             <TabsContent value="personal">
                                                                 <div className="grid grid-cols-2 gap-4">
@@ -398,7 +397,7 @@ const ClientSection = () => {
                                                             phone: client.phone,
                                                         });
                                                     }}>
-                                                        <Edit className="h-4 w-4" />
+                                                        <Edit className="h-4 w-4"/>
                                                     </Button>
                                                 </DialogTrigger>
                                                 <DialogContent>
@@ -409,41 +408,56 @@ const ClientSection = () => {
                                                         <Input
                                                             placeholder="Fullname"
                                                             value={editClient.fullname}
-                                                            onChange={(e) => setEditClient({ ...editClient, fullname: e.target.value })}
+                                                            onChange={(e) => setEditClient({
+                                                                ...editClient,
+                                                                fullname: e.target.value
+                                                            })}
                                                         />
                                                         <Input
                                                             placeholder="Email"
                                                             value={editClient.email}
-                                                            onChange={(e) => setEditClient({ ...editClient, email: e.target.value })}
+                                                            onChange={(e) => setEditClient({
+                                                                ...editClient,
+                                                                email: e.target.value
+                                                            })}
                                                         />
                                                         <Input
                                                             placeholder="Adresse"
                                                             value={editClient.address}
-                                                            onChange={(e) => setEditClient({ ...editClient, address: e.target.value })}
+                                                            onChange={(e) => setEditClient({
+                                                                ...editClient,
+                                                                address: e.target.value
+                                                            })}
                                                         />
                                                         <Input
                                                             placeholder="Téléphone"
                                                             value={editClient.phone}
-                                                            onChange={(e) => setEditClient({ ...editClient, phone: e.target.value })}
+                                                            onChange={(e) => setEditClient({
+                                                                ...editClient,
+                                                                phone: e.target.value
+                                                            })}
                                                         />
                                                     </div>
-                                                    <Button onClick={() => handleEditClient(client.id)} >Edit</Button>
+                                                    <Button onClick={() => handleEditClient(client.id)}>Edit</Button>
                                                 </DialogContent>
                                             </Dialog>
                                             <Dialog>
                                                 <DialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" onClick={() => setSelectedClient(client)}>
-                                                        <Trash2 className="h-4 w-4" />
+                                                    <Button variant="ghost" size="icon"
+                                                            onClick={() => setSelectedClient(client)}>
+                                                        <Trash2 className="h-4 w-4"/>
                                                     </Button>
                                                 </DialogTrigger>
                                                 <DialogContent>
                                                     <DialogHeader>
                                                         <DialogTitle>Delete Client</DialogTitle>
-                                                        <DialogDescription>Are you sure you want to delete this client?</DialogDescription>
+                                                        <DialogDescription>Are you sure you want to delete this
+                                                            client?</DialogDescription>
                                                     </DialogHeader>
                                                     <div className="flex justify-end gap-2">
                                                         <Button variant="ghost">Cancel</Button>
-                                                        <Button variant="destructive" onClick={() => handleDeleteClient(selectedClient.id)}>Delete</Button>
+                                                        <Button variant="destructive"
+                                                                onClick={() => handleDeleteClient(selectedClient.id)}>Delete</Button>
                                                     </div>
                                                 </DialogContent>
                                             </Dialog>
@@ -458,7 +472,8 @@ const ClientSection = () => {
                     <Pagination>
                         <PaginationContent>
                             <PaginationItem>
-                                <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
+                                <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)}
+                                                    disabled={currentPage === 1}/>
                             </PaginationItem>
                             {[...Array(totalPages).keys()].map((_, index) => (
                                 <PaginationItem key={index}>
@@ -471,7 +486,8 @@ const ClientSection = () => {
                                 </PaginationItem>
                             ))}
                             <PaginationItem>
-                                <PaginationNext onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
+                                <PaginationNext onClick={() => handlePageChange(currentPage + 1)}
+                                                disabled={currentPage === totalPages}/>
                             </PaginationItem>
                         </PaginationContent>
                     </Pagination>

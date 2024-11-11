@@ -3,6 +3,7 @@ import {Client} from "@/components/dashboard";
 import {AddClientProps} from "@/components/clients";
 import {AddAccountProps} from "@/components/accounts";
 import {AddOperationProps} from "@/components/withdrawals";
+import {NewEmployeProps} from "@/components/workers";
 
 export const getDashboard = async () => {
     try {
@@ -114,4 +115,79 @@ export const getClientAccounts = async (id: number) => {
     }
 }
 
+export const getEmployes = async () => {
+    try {
+        const response = await axios.get('http://localhost:8080/api/v1/employe');
+        return response.data;
+    } catch (error) {
+        console.error(error);
+    }
+}
 
+export const getCollaborators = async (id: number) => {
+    try {
+        const response = await axios.get(`http://localhost:8080/api/v1/employe/${id}/collaborators`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export const addEmploye = async (data: NewEmployeProps, sup_id: number, groupe_id: string) => {
+    try {
+        const response = await axios.post(`http://localhost:8080/api/v1/employe?employe_sup_id=${sup_id}&groupe_id=${groupe_id}`, data);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getGroupe = async () => {
+    try {
+        const response = await axios.get('http://localhost:8080/api/v1/groupe');
+        return response.data;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export const addGroupe = async (nomGroupe: string) => {
+    try {
+        const response = await axios.post(`http://localhost:8080/api/v1/groupe?groupName=${nomGroupe}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+
+export const deleteEmploye = async (id: number) => {
+    try {
+        const response = await axios.delete(`http://localhost:8080/api/v1/employe/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getGroupEmployes = async (id: number) => {
+    try {
+        const response = await axios.get(`http://localhost:8080/api/v1/groupe/${id}/employes`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export const deleteGroup = async (id: number) => {
+    try {
+        const response = await axios.delete(`http://localhost:8080/api/v1/groupe/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
